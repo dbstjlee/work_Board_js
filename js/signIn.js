@@ -1,75 +1,67 @@
-// 1. 사용자 로그인 처리 
-// 2. 회원가입 된 사용자 확인 
-// 3. 사용자 입력값 유효성 검사 
-// 4. 로컬 스토리지에 사용자 정보 저장 
+const signInApp = {
+    userList: JSON.parse(localStorage.getItem('userList')),
+    elements: {
+        inputs: document.querySelectorAll('.inputs'),
+        button: document.querySelector('button')
+    },
 
-//  - 로컬 스토리지에서 사용자 전체 목록을 가져 오기 
-const userList =  JSON.parse(localStorage.getItem('userList'));
-console.log('userList', userList);
+    init: function() {
+        this.bindEvents();
+    },
 
-// - DOM API 접근 Node 가져 오기 
-const inputs = document.querySelectorAll('.inputs');
-const button = document.querySelector('button');
+    bindEvents: function() {
+        this.elements.button.addEventListener('click', this.login.bind(this));
+    },
 
-// - 이벤트 리스너 등록 
-function addEventListener() {
-    button.addEventListener('click', login);
-}
+    login: function() {
+        const username = this.elements.inputs[0].value.trim();
+        const password = this.elements.inputs[1].value.trim();
 
-// - 로그인 처리 함수 만들어 보기 
-function login() {
+        // 유효성 검사
+        if (username === "") {
+            alert('아이디를 입력하세요');
+            this.elements.inputs[0].focus();
+            return;
+        }
 
-    const username = inputs[0];
-    const password = inputs[1];
-    // console.log('username', username.value, 'password', password.value);
+        if (password === "") {
+            alert('비밀번호를 입력하세요');
+            this.elements.inputs[1].focus();
+            return;
+        }
 
-    // 유효성 검사 
-    if(username.value.trim() === "") {
-        alert('아이디를 입력하세요');
-        username.focus();
-        return;
-    }
+        // 단, 한명도 회원가입 없을 경우 예외 처리
+        if (!this.userList || this.userList.length === 0) {
+            alert('등록된 사용자가 없습니다');
+            location.href = "sign-up.html";
+            return;
+        }
 
-    if(password.value.trim() === "") {
-        alert('비밀번호를 입력하세요');
-        password.focus();
-        return;
-    }
+        let userFound = false;
 
-    // 단, 한명도 회원가입 없을 경우 예외 처리 
-    if(userList == null || userList.length === 0) {
-        alert('등록된 사용자가 없습니다');
-        location.href = "sign-up.html";
-        return;
-    }    
+        for (let i = 0; i < this.userList.length; i++) {
+            if (this.userList[i].username === username) {
+                userFound = true;
 
-    // [{}, {}, {}, {}]
-    let userFound = false; 
-    for(let i = 0; i < userList.length; i++) {
-        // 1. 사용자가 입력값 username, 자료구조 안에 username 값이 같다면 일단 아디는 존재 함 
-        // 2. 이름이 같다면 비밀번호 여부를 확인 해야 한다. 
-        if(userList[i].username === username.value) {
-            userFound = true; 
-            if(userList[i].password !== password.value) {
-                alert('잘못된 비밀번호 입니다');
-                password.focus();
-                return;
-            } else {
-                // 로컬 스토리지에 현재 상태를 저장 시킴 key - user , value - object 
-                localStorage.setItem('user', JSON.stringify(userList[i]));
-                alert('로그인 완료');
-                // location.href = "board-list.html";
-                return; 
+                if (this.userList[i].password !== password) {
+                    alert('잘못된 비밀번호 입니다');
+                    this.elements.inputs[1].focus();
+                    return;
+                } else {
+                    localStorage.setItem('user', JSON.stringify(this.userList[i]));
+                    alert('로그인 완료');
+                    location.href = "board-list.html";
+                    return;
+                }
             }
         }
+
+        if (!userFound) {
+            alert('해당 아이디가 존재하지 않습니다');
+            this.elements.inputs[0].focus();
+        }
     }
+};
 
-    if(userFound == false) {
-        alert('해당 아이디가 존재하지 않습니다');
-        username.focus();
-    }
-}
-
-
-// - 함수 호출 
-addEventListener();
+// 애플리케이션 초기화
+signInApp.init();
